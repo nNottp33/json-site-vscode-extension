@@ -2,7 +2,7 @@
   "name": "json-workbench-local",
   "displayName": "JSON Workbench",
   "description": "A private JSON workspace with split editors, tree, table, type generation, repair and local history.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "local-tools",
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/nNottp33/json-site-vscode-extension.git" },
@@ -21,6 +21,9 @@
       { "command": "jsonWorkbench.open", "title": "JSON Workbench: Open" },
       { "command": "jsonWorkbench.openSelection", "title": "JSON Workbench: Open Selection or Document" }
     ],
+    "keybindings": [
+      { "command": "jsonWorkbench.open", "key": "alt+j" }
+    ],
     "menus": {
       "editor/context": [{ "command": "jsonWorkbench.openSelection", "group": "navigation@90" }],
       "explorer/context": [{ "command": "jsonWorkbench.openSelection", "when": "resourceExtname == .json", "group": "navigation@90" }]
@@ -30,10 +33,10 @@
     "build": "node scripts/build.mjs",
     "vscode:prepublish": "npm run build",
     "check": "tsc --noEmit",
-    "test": "tsx --test test/core.test.ts test/host.test.ts",
+    "test": "tsx --test test/core.test.ts test/host.test.ts test/history-sync.test.ts",
     "test:ui": "node test/ui.cjs",
     "test:vscode": "node test/vscode/run.cjs",
-    "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-local-0.1.0.vsix"
+    "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-local-0.2.0.vsix"
   },
   "dependencies": {
     "monaco-editor": "^0.55.1",

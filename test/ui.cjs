@@ -36,10 +36,13 @@ const { encodeShare, decodeShare } = require('../src/host.ts');
   let exported = '';
   let history = [];
   let typeCount = 0;
+  let syncEnabled = false;
+  let helpOpened = false;
+  const syncStatus = () => ({ enabled: syncEnabled, prepared: syncEnabled ? history.length : 0, localOnly: 0, bytes: 0, message: syncEnabled ? 'Prepared for Settings Sync.' : 'History stays on this device.' });
   const post = data => page.evaluate(m => window.postMessage(m, '*'), data);
   await page.exposeFunction('__hostMessage', async m => {
     const respond = (result, error) => post({ type: 'response', id: m.id, ok: !error, result, error });
-    if (m.type === 'ready') { if (draft) await post({ type: 'restore', draft }); await post({ type: 'history', entries: history }); }
+    if (m.type === 'ready') { if (draft) await post({ type: 'restore', draft }); await post({ type: 'history', entries: history }); await post({ type: 'historySync', status: syncStatus() }); }
     else if (m.type === 'copy') { copied = m.text; await respond({ text: 'Copied to clipboard' }); }
     else if (m.type === 'export') { exported = m.text; await respond({ text: 'File saved' }); }
     else if (m.type === 'draft') { draft = m.draft; if (draft.input.trim()) history = [{ id: 'sample', name: draft.name, date: new Date().toISOString(), bytes: Buffer.byteLength(draft.input) }]; await post({ type: 'history', entries: history }); }
@@ -47,6 +50,9 @@ const { encodeShare, decodeShare } = require('../src/host.ts');
     else if (m.type === 'historyDelete') { history = []; await post({ type: 'history', entries: [] }); }
     else if (m.type === 'import') await post({ type: 'load', text: '{"imported":true}', name: 'imported.json', side: m.side });
     else if (m.type === 'share') { copied = encodeShare(m.text); await respond({ text: 'Share link copied' }); }
+    else if (m.type === 'historySyncToggle') { syncEnabled = m.enabled; await post({ type: 'historySync', status: syncStatus() }); }
+    else if (m.type === 'historySyncRefresh') { await post({ type: 'historySync', status: syncStatus() }); }
+    else if (m.type === 'historySyncHelp') { helpOpened = true; }
     else if (m.type === 'types') {
       typeCount++;
       const job = new Worker(path.join(root, 'dist/types-worker.cjs'), { workerData: m });
@@ -101,6 +107,9 @@ const { encodeShare, decodeShare } = require('../src/host.ts');
     await page.locator('#history-toggle').click(); await page.waitForTimeout(1200);
     await page.screenshot({ path: path.join(results, 'workbench-dark.png') });
     await page.selectOption('#theme', 'light'); await page.screenshot({ path: path.join(results, 'workbench-light.png') });
+    await page.locator('#sync-toggle').check(); await waitText('#privacy-badge', 'Sync enabled'); await waitText('#sync-status', 'Prepared for Settings Sync');
+    await page.locator('#sync-refresh').click(); await page.locator('#sync-help').click(); await page.waitForTimeout(100); assert.ok(helpOpened);
+    await page.locator('#sync-toggle').uncheck(); await waitText('#privacy-badge', 'Local'); checks.push('history sync opt-in toggle, status and badge');
     await tab('output', 'Editor');
     await post({ type: 'load', text: '{"x":}', name: 'invalid.json' }); await waitText('#input-status', 'Invalid JSON');
     await post({ type: 'load', text: "{name:'Ada',}", name: 'repair.json' }); await waitText('#input-status', 'Invalid JSON');

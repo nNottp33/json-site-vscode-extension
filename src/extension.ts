@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { MAX_BYTES } from './core';
 import { textMessage, historyEntry, encodeShare, decodeShare, type HistoryEntry } from './host';
+import { HistorySync, type SyncState, type HistoryPort } from './history-sync';
 import { markup } from './markup';
 
 const languages = new Set(['typescript', 'javascript', 'python', 'go', 'java', 'csharp', 'rust', 'swift', 'kotlin', 'dart', 'cpp', 'ruby', 'schema']);
@@ -32,6 +33,52 @@ export function activate(context: vscode.ExtensionContext) {
     await context.globalState.update('history', kept);
     for (const item of items.filter(item => !kept.some(k => k.id === item.id))) await vscode.workspace.fs.delete(storage(`${item.id}.json`)).then(undefined, () => undefined);
   }
+  const syncState: SyncState = {
+    get: (key, fallback) => context.globalState.get(key, fallback),
+    update: (key, value) => context.globalState.update(key, value),
+    setKeysForSync: keys => context.globalState.setKeysForSync(keys)
+  };
+  const syncPort: HistoryPort = {
+    list: () => historyIndex(),
+    read: async id => decoder.decode(await vscode.workspace.fs.readFile(storage(`${id}.json`))),
+    apply: async (documents, deleted) => {
+      const tomb = new Map(deleted.map(d => [d.id, d.date]));
+      const index = historyIndex();
+      const byId = new Map(index.map(e => [e.id, e]));
+      const wrote = new Set<string>();
+      for (const doc of documents) {
+        const id = doc.entry.id;
+        const t = tomb.get(id);
+        if (t && t >= doc.entry.date) continue;               // deletion supersedes this incoming record
+        const existing = byId.get(id);
+        if (existing && existing.date >= doc.entry.date) continue;
+        await vscode.workspace.fs.createDirectory(context.globalStorageUri);
+        await vscode.workspace.fs.writeFile(storage(`${id}.json`), utf8.encode(doc.text)); // content before index
+        wrote.add(id);
+        byId.set(id, doc.entry);
+      }
+      for (const [id, entry] of [...byId]) { const t = tomb.get(id); if (t && t >= entry.date) byId.delete(id); }
+      let size = 0;
+      const kept = [...byId.values()].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id)).filter((item, i) => { size += item.bytes; return i < 50 && size <= 200 * 1024 * 1024; });
+      await context.globalState.update('history', kept);
+      const keptIds = new Set(kept.map(e => e.id));
+      for (const id of new Set([...index.map(e => e.id), ...wrote])) if (!keptIds.has(id)) await vscode.workspace.fs.delete(storage(`${id}.json`)).then(undefined, () => undefined);
+    }
+  };
+  const sync = new HistorySync(syncState, syncPort);
+  const broadcast = (message: unknown) => current?.webview.postMessage(message);
+  const syncError = (error: unknown, message: string) => broadcast({ type: 'historySync', status: { ...sync.status(), message, error: error instanceof Error ? error.message : String(error) } });
+  let reconcileQueued = false;
+  function scheduleReconcile() {
+    if (!sync.enabled || reconcileQueued) return;
+    reconcileQueued = true;
+    storageQueue = storageQueue.catch(() => undefined).then(async () => {
+      reconcileQueued = false;
+      try { broadcast({ type: 'historySync', status: await sync.reconcile() }); broadcast({ type: 'history', entries: historyIndex() }); }
+      catch (error) { syncError(error, 'History sync paused; local history is unchanged.'); }
+    });
+  }
+  const syncTimer = setInterval(scheduleReconcile, 30000);
   function launch(initial?: { text: string; name: string }, restored?: vscode.WebviewPanel) {
     if (current && !restored) {
       current.reveal();
@@ -61,6 +108,8 @@ export function activate(context: vscode.ExtensionContext) {
               catch (error) { if (!(error instanceof vscode.FileSystemError && error.code === 'FileNotFound')) await send({ type: 'notice', text: 'Could not restore the previous draft.' }); }
             }
             await send({ type: 'history', entries: historyIndex() });
+            await send({ type: 'historySync', status: sync.status() });
+            scheduleReconcile();
             break;
           }
           case 'import': {
@@ -89,6 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
               await send({ type: 'history', entries: historyIndex() });
             });
             await storageQueue;
+            scheduleReconcile();
             break;
           }
           case 'historyOpen': {
@@ -101,12 +151,14 @@ export function activate(context: vscode.ExtensionContext) {
               const items = historyIndex();
               const entry = items.find(e => e.id === message.entryId);
               if (entry) {
+                if (sync.enabled) await sync.deleted(entry.id); // tombstone before publishing the deletion
                 await context.globalState.update('history', items.filter(e => e.id !== entry.id));
                 await vscode.workspace.fs.delete(storage(`${entry.id}.json`));
               }
               await send({ type: 'history', entries: historyIndex() });
             });
             await storageQueue;
+            scheduleReconcile();
             break;
           }
           case 'share': {
@@ -132,6 +184,21 @@ export function activate(context: vscode.ExtensionContext) {
             });
             break;
           }
+          case 'historySyncToggle': {
+            const enabled = !!message.enabled;
+            await (storageQueue = storageQueue.catch(() => undefined).then(async () => {
+              try { broadcast({ type: 'historySync', status: await sync.setEnabled(enabled) }); broadcast({ type: 'history', entries: historyIndex() }); }
+              catch (error) { syncError(error, 'History sync could not start; local history is unchanged.'); }
+            }));
+            break;
+          }
+          case 'historySyncRefresh':
+            await send({ type: 'historySync', status: sync.status() });
+            scheduleReconcile();
+            break;
+          case 'historySyncHelp':
+            await vscode.env.openExternal(vscode.Uri.parse('https://code.visualstudio.com/docs/configure/settings-sync'));
+            break;
         }
       } catch (error) {
         const text = error instanceof Error ? error.message : String(error);
@@ -158,6 +225,7 @@ export function activate(context: vscode.ExtensionContext) {
       try { if (uri.path === '/open') launch({ text: decodeShare(new URLSearchParams(uri.query).get('data') || ''), name: 'Shared JSON' }); }
       catch (error) { void vscode.window.showErrorMessage(String(error)); }
     } }),
-    { dispose() { current?.dispose(); } }
+    vscode.window.onDidChangeWindowState(state => { if (state.focused) scheduleReconcile(); }),
+    { dispose() { clearInterval(syncTimer); current?.dispose(); } }
   );
 }

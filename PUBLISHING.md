@@ -22,7 +22,7 @@ npm test
 npm run build
 npm run test:ui
 npm run package
-npx vsce publish --packagePath json-workbench-local-0.1.0.vsix
+npx vsce publish --packagePath json-workbench-local-0.2.0.vsix
 ```
 
 Publish the generated, validated VSIX. Update the version in `package.json`, `package-lock.json`, and the versioned package filename in the scripts/workflow before subsequent releases.

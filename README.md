@@ -10,7 +10,7 @@ Inspired by [json.site](https://json.site/). This is an independent open-source 
 
 ## Getting started
 
-Install a `.vsix` with **Extensions: Install from VSIX…**, then run **JSON Workbench: Open** from the Command Palette.
+Install a `.vsix` with **Extensions: Install from VSIX…**, then run **JSON Workbench: Open** from the Command Palette or press **Alt+J**.
 
 Right-click in an editor and choose **JSON Workbench: Open Selection or Document** to load selected text, or the whole document when there is no selection. The command is also available for `.json` files in Explorer.
 
@@ -25,6 +25,7 @@ Requires VS Code 1.96 or newer. All runtime assets are bundled: no internet conn
 - JSON Pointer navigation and extraction, such as `/users/0/name`.
 - Monaco find/replace, folding, undo/redo, and a side-by-side diff.
 - Local history search/deletion and restoration of both editor drafts and preferences.
+- Optional history sync across your devices through VS Code Settings Sync (off by default, enabled per device).
 - File open/save, drag-and-drop, clipboard, and self-contained share links for other extension users.
 - Light/dark/VS Code theme, font size, word wrap, and 1–4 spaces or tab indentation.
 
@@ -41,7 +42,9 @@ Requires VS Code 1.96 or newer. All runtime assets are bundled: no internet conn
 
 ## Privacy and limits
 
-JSON stays on the machine running the extension host. The extension sends no telemetry and does not call json.site or a remote processing service. With Remote SSH or WSL, VS Code may run the extension host remotely.
+JSON stays on the machine running the extension host unless you turn on history sync. The extension sends no telemetry and does not call json.site or a remote processing service. With Remote SSH or WSL, VS Code may run the extension host remotely.
+
+- History sync is **off by default**. When you enable it in the History sidebar, recent history is shared through **VS Code Settings Sync** using your signed-in VS Code account, so your JSON leaves the device. It must be enabled on each device, signed in to the same account with the same extension installed. Up to **20 entries / 1 MiB each / 64 KiB per synced snapshot** are shared; larger or older items stay local and are shown as "local only". Editor drafts are never synced. Deletions propagate and are remembered for 90 days so removed items do not reappear. VS Code manages the actual transfer and conflict handling; disabling sync stops sharing new changes, but copies already synced remain in your VS Code account until removed there.
 
 - Input limit: **100 MiB**. Parsing runs in Web Workers; tables and trees load incrementally. Performance depends on document structure and available memory.
 - Type generation: samples up to **2 MiB**, with a **30-second timeout**. Review inferred types before using them as a contract.

@@ -215,6 +215,14 @@ function renderHistory() {
     row.append(open, button('×', () => vscode.postMessage({ type: 'historyDelete', entryId: entry.id }), `Delete ${entry.name} from history`)); list.append(row);
   }
 }
+function applySync(s: { enabled: boolean; message: string; error?: string }) {
+  input('sync-toggle').checked = s.enabled;
+  $('sync-status').textContent = s.error || s.message;
+  $('sync-status').classList.toggle('sync-error', !!s.error);
+  const badge = $('privacy-badge');
+  badge.textContent = s.enabled ? '● Sync enabled' : '● Local';
+  badge.classList.toggle('synced', s.enabled);
+}
 function applyTheme() {
   const mode = select('theme').value;
   const dark = mode === 'dark' || (mode === 'auto' && (document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')));
@@ -245,6 +253,9 @@ async function main() {
   new MutationObserver(applyTheme).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   $('history-toggle').onclick = () => { $('history').hidden = !$('history').hidden; persist(); };
   input('history-search').oninput = renderHistory;
+  input('sync-toggle').onchange = () => vscode.postMessage({ type: 'historySyncToggle', enabled: input('sync-toggle').checked });
+  $('sync-refresh').onclick = () => vscode.postMessage({ type: 'historySyncRefresh' });
+  $('sync-help').onclick = () => vscode.postMessage({ type: 'historySyncHelp' });
   $('document-name').oninput = persist;
   $('sample').onclick = () => { input('document-name').value = 'Example · team.json'; left.replace(JSON.stringify({ name: 'JSON Workbench', private: true, version: '0.1.0', team: [{ id: 1, name: 'Ada', role: 'Engineer', active: true }, { id: 2, name: 'Lin', role: 'Designer', active: false }], settings: { theme: 'dark', indent: 2 }, tags: ['json', 'vscode', 'offline'] }), true); };
   $('new').onclick = () => { input('document-name').value = 'Untitled JSON'; left.replace(''); right.replace(''); };
@@ -278,6 +289,7 @@ async function main() {
     else if (m.type === 'load') { input('document-name').value = m.name || 'Untitled JSON'; (m.side === 'output' ? right : left).replace(m.text, true); }
     else if (m.type === 'restore') { const d = m.draft; restorePreferences(d); input('document-name').value = d.name || 'Untitled JSON'; left.replace(d.input || '', true, false); right.replace(d.output || '', true, false); }
     else if (m.type === 'history') { history = m.entries; renderHistory(); }
+    else if (m.type === 'historySync') applySync(m.status);
     else if (m.type === 'notice') notify(m.text);
   });
   window.addEventListener('beforeunload', () => { left.worker.terminate(); right.worker.terminate(); for (const url of workerUrls) URL.revokeObjectURL(url); });

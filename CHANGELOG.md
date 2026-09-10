@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Optional history sync across devices through VS Code Settings Sync, off by default and enabled per device.
+- Shares up to 20 recent entries (1 MiB each, 64 KiB per snapshot) with content hashing, bounded decompression, and snapshot validation before any local change.
+- Deletions propagate with 90-day tombstones so removed items do not reappear, and a newer intentional re-add supersedes a deletion.
+- Larger or older items and editor drafts stay local; the History sidebar shows prepared and local-only counts and a setup guide.
+
 ## 0.1.0
 
 - Split Monaco editors with live JSON validation and lossless number formatting.

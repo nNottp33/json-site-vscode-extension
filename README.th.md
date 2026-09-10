@@ -5,13 +5,13 @@
 ## ติดตั้งและเปิดใช้งาน
 
 1. ใน VS Code กด `Ctrl+Shift+P` แล้วเลือก **Extensions: Install from VSIX...**
-2. เลือกไฟล์ `json-workbench-local-0.1.0.vsix` ในโฟลเดอร์นี้
-3. กด `Ctrl+Shift+P` แล้วเลือก **JSON Workbench: Open**
+2. เลือกไฟล์ `json-workbench-local-0.2.0.vsix` ในโฟลเดอร์นี้
+3. กด `Ctrl+Shift+P` แล้วเลือก **JSON Workbench: Open** หรือกด **Alt+J** เพื่อเปิดหน้าต่าง
 
 หรือใช้ Terminal:
 
 ```powershell
-code --install-extension .\json-workbench-local-0.1.0.vsix
+code --install-extension .\json-workbench-local-0.2.0.vsix
 ```
 
 คลิกขวาใน editor แล้วเลือก **JSON Workbench: Open Selection or Document** เพื่อเปิดข้อความที่เลือก หรือทั้งไฟล์ หากไม่ได้เลือกข้อความไว้ รองรับคลิกขวาไฟล์ `.json` ใน Explorer ด้วย ต้องใช้ VS Code 1.96 ขึ้นไป
@@ -34,6 +34,7 @@ code --install-extension .\json-workbench-local-0.1.0.vsix
 | Find / Fold / Expand | ค้นหา/แทนที่ใน Monaco และยุบ/ขยายโค้ด |
 | Diff | เปรียบเทียบข้อความระหว่าง editor สองฝั่ง ปิด Auto format เพื่อแก้ไขแยกกัน |
 | History | บันทึก snapshot ในเครื่อง ค้นหาจากชื่อ เปิดกลับมา และลบแต่ละรายการได้ |
+| History sync | เลือกเปิด "Sync history across devices" เพื่อแชร์ประวัติผ่าน VS Code Settings Sync (ปิดโดยปริยาย ต้องเปิดในแต่ละเครื่อง) |
 | Draft | คืนข้อความทั้งสองฝั่งและการตั้งค่าเมื่อเปิดกลับมา |
 | เปิด/บันทึกไฟล์ | ใช้ Open/Save หรือวางไฟล์ลงใน pane |
 | Share link | คัดลอกลิงก์ `vscode://<publisher>.json-workbench-local/open?...` ให้คนที่ติดตั้ง extension เดียวกัน |
@@ -49,6 +50,7 @@ code --install-extension .\json-workbench-local-0.1.0.vsix
 - Type generation ใช้ sample ไม่เกิน **2 MiB** และมี timeout 30 วินาที ชนิดข้อมูลเป็นผลอนุมานจาก sample ต้องตรวจสอบก่อนใช้เป็น API contract
 - Share link รองรับข้อมูลก่อนบีบอัดไม่เกิน **1 MiB** และข้อมูลที่บีบอัดแล้วไม่เกิน 12,000 ตัวอักษร ข้อมูลอยู่ในลิงก์โดยตรง ลิงก์ไม่ได้เข้ารหัสและผู้รับต้องติดตั้ง extension นี้ สำหรับข้อมูลใหญ่ใช้ Save แล้วส่งไฟล์
 - History เก็บสูงสุด **50 รายการ / 200 MiB** ใน extension global storage ของ VS Code และ draft แยกอีกหนึ่งไฟล์ บันทึกหลังหยุดแก้ประมาณ 1 วินาที ปิดทันทีหรือโปรแกรม crash ก่อนบันทึกอาจเสียการแก้ไขล่าสุด
+- History sync **ปิดโดยปริยาย** เมื่อเปิดในแถบ History จะแชร์ประวัติล่าสุดผ่าน **VS Code Settings Sync** ด้วยบัญชี VS Code ที่ล็อกอินอยู่ ข้อมูล JSON จึงออกจากเครื่อง ต้องเปิดในทุกเครื่องที่ใช้บัญชีเดียวกันและติดตั้ง extension นี้ แชร์ได้สูงสุด **20 รายการ / รายการละ 1 MiB / snapshot ละ 64 KiB** รายการที่ใหญ่หรือเก่ากว่านั้นและ draft จะไม่ถูกซิงก์และแสดงเป็น "local only" การลบจะถูกจดจำ 90 วันเพื่อไม่ให้รายการที่ลบกลับมา ปิด sync แล้วจะหยุดแชร์การเปลี่ยนแปลงใหม่ แต่ข้อมูลที่ซิงก์ไปแล้วยังอยู่ในบัญชี VS Code จนกว่าจะลบที่นั่น
 - Remote SSH/WSL: ข้อมูลเก็บในเครื่องที่รัน extension host ตามกลไกของ VS Code
 - ช่อง Search ใน Tree/Table/Graph ค้นหาเฉพาะแถวที่โหลดอยู่ ใช้ Find ใน Editor เพื่อค้นหาทั้งเอกสาร
 - UI และบริการแชร์ไม่ได้เหมือนเว็บทุกจุด: ไม่มีลิงก์ฝากข้อมูลบน json.site, บัญชีผู้ใช้, community/feedback ของเว็บ หรือ UI หลายภาษา ไม่มีการอ้างว่าเป็นสำเนาแบบ pixel-perfect

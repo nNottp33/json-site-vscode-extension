@@ -39,4 +39,4 @@ jobs:
             echo 'Configure VSCE_PAT in the marketplace environment before publishing.'
             exit 1
           fi
-          npx vsce publish --packagePath json-workbench-local-0.1.0.vsix
+          npx vsce publish --packagePath json-workbench-local-0.2.0.vsix
