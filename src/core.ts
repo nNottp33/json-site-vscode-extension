@@ -17,6 +17,19 @@ export function decodeBase64(text: string): string {
   const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
   return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
 }
+export function decodeJwt(text: string): { header: unknown; payload: unknown; signature: string } {
+  const parts = /^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]*)$/.exec(text.trim());
+  if (!parts) throw new Error('Not a JWT.');
+  const [header, payload] = [parts[1], parts[2]].map(part => readJSON(decodeBase64(part)));
+  if (!container(header) || !container(payload)) throw new Error('Not a JWT.');
+  return { header, payload, signature: parts[3] };
+}
+// Only whole objects/arrays are auto-decoded: base64 of a bare number is indistinguishable from short words such as "OK".
+export function pasteAction(text: string): 'jwt' | 'base64' | undefined {
+  if (!/^[\sA-Za-z0-9+/=_.-]*$/.test(text)) return undefined;
+  try { decodeJwt(text); return 'jwt'; } catch { /* not a JWT */ }
+  try { return container(readJSON(decodeBase64(text))) ? 'base64' : undefined; } catch { return undefined; }
+}
 export function readJSON(text: string): unknown {
   if (new TextEncoder().encode(text).length > MAX_BYTES) throw new Error('JSON exceeds the 100 MiB input limit.');
   if (typeof nativeJSON.rawJSON !== 'function') throw new Error('Update VS Code to a version with native JSON.rawJSON support.');
@@ -82,6 +95,7 @@ function decoded(value: unknown, depth = 0): unknown {
 export function transform(text: string, action: string, indent = '2'): string {
   if (action === 'repair') return writeJSON(readJSON(jsonrepair(text)), indentation(indent));
   if (action === 'base64') { const decoded = decodeBase64(text); try { return writeJSON(readJSON(decoded), indentation(indent)); } catch { return decoded; } }
+  if (action === 'jwt') return writeJSON(decodeJwt(text), indentation(indent));
   const value = readJSON(text);
   switch (action) {
     case 'format': return writeJSON(value, indentation(indent));

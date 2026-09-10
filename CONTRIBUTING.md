@@ -14,7 +14,7 @@ npm run package
 
 On Windows, UI tests use an installed Google Chrome. Set `JSON_WORKBENCH_CHROME` to a browser executable to override this. On Linux/macOS, tests use Playwright's Chromium.
 
-Open the repository in VS Code and press F5 to debug the extension in a separate window. `npm run test:vscode` exercises the installed VS Code extension host with an isolated profile; set `JSON_WORKBENCH_VSCODE` to the executable on platforms other than Windows.
+Open the repository in VS Code and press F5 to debug the extension in a separate window. `npm run test:vscode` exercises the installed VS Code extension host with an isolated profile; set `JSON_WORKBENCH_VSCODE` to the executable on platforms other than Windows. `npm run test:clipboard` (Windows only, after `npm run build`) opens a real VS Code window and checks Ctrl+C/X/V/Z plus paste auto-decoding inside the editors; it overwrites the system clipboard while running.
 
 Keep JSON processing offline. Include focused regression coverage for transformations and asynchronous editor behavior, and preserve exact numeric values. Do not commit local history, credentials, test profiles, or private sample documents.
 

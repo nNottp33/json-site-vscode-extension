@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { transform, readJSON, writeJSON, children, table, parsePointer, pointer, atPath, decodeBase64, MAX_BYTES } from '../src/core';
+import { transform, readJSON, writeJSON, children, table, parsePointer, pointer, atPath, decodeBase64, pasteAction, MAX_BYTES } from '../src/core';
 
 test('format and minify preserve large integer and decimal number lexemes', () => {
   const source = '{"id":9007199254740993,"price":1234567890.123456789,"tiny":1e-900,"__proto__":{"safe":true}}';
@@ -51,6 +51,26 @@ test('base64 decodes to formatted JSON, falls back to plain text, and rejects no
   assert.equal(transform(Buffer.from('hello 🌏').toString('base64'), 'base64'), 'hello 🌏');
   assert.equal(decodeBase64('eyJhIjoxfQ'), '{"a":1}');   // base64url without padding
   assert.throws(() => transform('{"plain":"json"}', 'base64'));
+});
+test('JWT decodes header and payload exactly; paste detection distinguishes jwt, base64 JSON and plain text', () => {
+  const b64url = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const token = `${b64url({ alg: 'HS256', typ: 'JWT' })}.${Buffer.from('{"sub":"42","exp":9007199254740993}').toString('base64url')}.sig-nature_x`;
+  assert.equal(transform(token, 'jwt'), '{\n  "header": {\n    "alg": "HS256",\n    "typ": "JWT"\n  },\n  "payload": {\n    "sub": "42",\n    "exp": 9007199254740993\n  },\n  "signature": "sig-nature_x"\n}');
+  assert.equal(JSON.parse(transform(`${b64url({ alg: 'none' })}.${b64url({})}.`, 'jwt')).signature, '');
+  assert.throws(() => transform('not.a.jwt', 'jwt'));
+  assert.throws(() => transform(`${b64url('text')}.${b64url({})}.sig`, 'jwt'));
+  assert.throws(() => transform(`.${b64url({})}.sig`, 'jwt'));
+  assert.throws(() => transform(`${token}.extra`, 'jwt'));
+  assert.equal(pasteAction(token), 'jwt');
+  assert.equal(pasteAction(` ${token}\n`), 'jwt');
+  assert.equal(pasteAction(Buffer.from('{"a":1}').toString('base64')), 'base64');
+  assert.equal(pasteAction(Buffer.from('[1]').toString('base64') + '\n'), 'base64');
+  assert.equal(pasteAction(Buffer.from('hello').toString('base64')), undefined);
+  assert.equal(pasteAction('OK'), undefined);          // base64 of "8": a bare number must not rewrite a pasted word
+  assert.equal(pasteAction('MTA='), undefined);        // base64 of 10
+  assert.equal(pasteAction('{"a":1}'), undefined);
+  assert.equal(pasteAction('a.b.c'), undefined);
+  assert.equal(pasteAction(''), undefined);
 });
 test('UTF-8 BOM accepted; 100 MiB boundary enforced without clipping', () => {
   assert.equal(transform('\uFEFF{"x":1}', 'minify'), '{"x":1}');

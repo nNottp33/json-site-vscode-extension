@@ -19,7 +19,7 @@ Requires VS Code 1.96 or newer. All runtime assets are bundled: no internet conn
 ## Features
 
 - Split editors, live validation with error locations, adjustable panes, and optional automatic formatting.
-- Format, minify, stringify, unescape, deep parse, repair malformed JSON, recursively sort keys, and decode base64 (pasting base64-encoded JSON decodes it automatically). Large integers and decimal number tokens retain their exact values.
+- Format, minify, stringify, unescape, deep parse, repair malformed JSON, recursively sort keys, and decode base64 or JWT (pasting base64-encoded JSON or a JWT decodes and formats it automatically). Large integers and decimal number tokens retain their exact values.
 - Lazy Tree view with copy-value and copy-path actions; Table view with 100-row pagination; expandable Graph view.
 - Type generation for TypeScript, JavaScript, Python, Go, Java, C#, Rust, Swift, Kotlin, Dart, C++, Ruby, and JSON Schema.
 - JSON Pointer navigation and extraction, such as `/users/0/name`.

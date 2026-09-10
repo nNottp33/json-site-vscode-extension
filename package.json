@@ -36,6 +36,7 @@
     "test": "tsx --test test/core.test.ts test/host.test.ts test/history-sync.test.ts",
     "test:ui": "node test/ui.cjs",
     "test:vscode": "node test/vscode/run.cjs",
+    "test:clipboard": "node test/vscode/clipboard.cjs",
     "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-local-0.2.0.vsix"
   },
   "dependencies": {

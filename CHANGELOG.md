@@ -2,8 +2,8 @@
 
 ## 0.2.0
 
-- Base64 decode action, plus automatic decoding when base64-encoded JSON is pasted into an editor.
-- Fix editor copy/cut/paste (Ctrl+C/X/V) by bundling the Monaco clipboard contribution.
+- Base64 and JWT decode actions; pasting base64-encoded JSON or a JWT into an editor decodes and formats it automatically.
+- Fix editor copy/cut/paste (Ctrl+C/X/V): VS Code replays these keys into webviews as `document.execCommand`, which Monaco's EditContext input ignores, so the editors use the textarea input instead. Covered by `npm run test:clipboard` against a real VS Code.
 - Alt+J keyboard shortcut to open JSON Workbench.
 - Optional history sync across devices through VS Code Settings Sync, off by default and enabled per device.
 - Shares up to 20 recent entries (1 MiB each, 64 KiB per snapshot) with content hashing, bounded decompression, and snapshot validation before any local change.

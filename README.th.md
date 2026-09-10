@@ -26,7 +26,8 @@ code --install-extension .\json-workbench-local-0.2.0.vsix
 | Stringify / Unescape | แปลง JSON เป็น string หรือถอด string กลับเป็นข้อความ |
 | Deep parse | แปลง JSON ที่ซ้อนอยู่ใน string ตาม object/array |
 | Repair / Sort | ซ่อม JSON เช่น single quotes/trailing comma หรือเรียง key แบบ recursive |
-| Base64 | ปุ่ม Base64 ถอดรหัส base64 เป็นข้อความ/JSON และเมื่อ paste ข้อมูล base64 ที่เป็น JSON จะถอดให้อัตโนมัติ |
+| Base64 | ปุ่ม Base64 ถอดรหัส base64 เป็นข้อความ/JSON และเมื่อ paste ข้อมูล base64 ที่เป็น JSON จะถอดและ format ให้อัตโนมัติ |
+| JWT | ปุ่ม JWT ถอด header/payload ของ JWT เป็น JSON (เก็บ signature ไว้) และเมื่อ paste JWT จะถอดและ format ให้อัตโนมัติ |
 | Tree | ขยายโครงสร้างทีละระดับ คัดลอกค่าและ JSON Pointer ของแต่ละ node |
 | Table | แสดง object/array เป็นตาราง ครั้งละ 100 แถว พร้อมเปลี่ยนหน้า |
 | Graph | แสดงโครงสร้างเป็นกล่องและเส้นเชื่อม ขยาย node ได้ |
