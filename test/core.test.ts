@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { transform, readJSON, writeJSON, children, table, parsePointer, pointer, atPath, MAX_BYTES } from '../src/core';
+import { transform, readJSON, writeJSON, children, table, parsePointer, pointer, atPath, decodeBase64, MAX_BYTES } from '../src/core';
 
 test('format and minify preserve large integer and decimal number lexemes', () => {
   const source = '{"id":9007199254740993,"price":1234567890.123456789,"tiny":1e-900,"__proto__":{"safe":true}}';
@@ -44,6 +44,13 @@ test('recursive sorting preserves arrays and prototype-like keys', () => {
 test('number-like and toJSON user keys remain ordinary JSON data', () => {
   const text = '{"isLosslessNumber":true,"value":"123","rawJSON":"0","toJSON":"hello"}';
   assert.equal(transform(text, 'minify'), text);
+});
+test('base64 decodes to formatted JSON, falls back to plain text, and rejects non-base64', () => {
+  const jsonB64 = Buffer.from('{"a":1,"b":[2,3]}').toString('base64');
+  assert.equal(transform(jsonB64, 'base64'), '{\n  "a": 1,\n  "b": [\n    2,\n    3\n  ]\n}');
+  assert.equal(transform(Buffer.from('hello 🌏').toString('base64'), 'base64'), 'hello 🌏');
+  assert.equal(decodeBase64('eyJhIjoxfQ'), '{"a":1}');   // base64url without padding
+  assert.throws(() => transform('{"plain":"json"}', 'base64'));
 });
 test('UTF-8 BOM accepted; 100 MiB boundary enforced without clipping', () => {
   assert.equal(transform('\uFEFF{"x":1}', 'minify'), '{"x":1}');

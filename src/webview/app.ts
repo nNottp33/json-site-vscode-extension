@@ -1,8 +1,9 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import 'monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js';
 import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js';
 import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js';
 import 'monaco-editor/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter.js';
-import { parsePointer, pointer, type NodeRow } from '../core';
+import { parsePointer, pointer, decodeBase64, type NodeRow } from '../core';
 declare function acquireVsCodeApi(): { postMessage(message: unknown): void; getState(): any; setState(state: unknown): void };
 const vscode = acquireVsCodeApi();
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -62,12 +63,13 @@ class Pane {
     this.worker.onerror = () => { for (const request of this.pending.values()) request.reject(new Error('JSON worker stopped. Reopen JSON Workbench to retry.')); this.pending.clear(); };
     this.editor = monaco.editor.create($(`${side}-editor`), { value: '', language: 'json', automaticLayout: true, minimap: { enabled: false }, fontSize: 14, fontFamily: 'Consolas, "Cascadia Code", monospace', scrollBeyondLastLine: false, wordWrap: 'on', folding: true, tabSize: 2, insertSpaces: true, renderWhitespace: 'selection', padding: { top: 16 }, ariaLabel: `${side === 'input' ? 'Input' : 'Output'} JSON editor`, accessibilitySupport: 'auto', bracketPairColorization: { enabled: true } });
     this.editor.onDidChangeModelContent(() => { if (!this.suppress) this.changed(); });
+    this.editor.onDidPaste(() => { try { const decoded = decodeBase64(this.editor.getValue()); JSON.parse(decoded); this.replace(decoded); } catch { /* not base64-encoded JSON: keep the pasted text */ } });
     for (const view of ['Editor', 'Tree', 'Table', 'Graph', 'Type']) {
       const b = button(view, () => this.setView(view)); b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(view === this.view)); $(`${side}-tabs`).append(b);
     }
     const toolbar = $(`${side}-toolbar`);
     toolbar.append(button('Open', () => vscode.postMessage({ type: 'import', side })), button('Save', async () => notify((await host('export', { text: this.editor.getValue() })).text)), button('Copy', async () => notify((await host('copy', { text: this.editor.getValue() })).text)));
-    const actions: [string, string][] = [['Format', 'format'], ['Minify', 'minify'], ['Stringify', 'stringify'], ['Unescape', 'unescape'], ['Deep parse', 'deepParse'], ['Repair', 'repair'], ['Sort', 'sort']];
+    const actions: [string, string][] = [['Format', 'format'], ['Minify', 'minify'], ['Stringify', 'stringify'], ['Unescape', 'unescape'], ['Deep parse', 'deepParse'], ['Repair', 'repair'], ['Sort', 'sort'], ['Base64', 'base64']];
     for (const [label, action] of actions) toolbar.append(button(label, () => this.transform(action)));
     toolbar.append(button('↶', () => this.editor.trigger('toolbar', 'undo', null), 'Undo'), button('↷', () => this.editor.trigger('toolbar', 'redo', null), 'Redo'), button('Find', () => { this.setView('Editor'); this.editor.getAction('actions.find')?.run(); }), button('Fold', () => this.editor.getAction('editor.foldAll')?.run()), button('Expand', () => this.editor.getAction('editor.unfoldAll')?.run()), button('Clear', () => this.replace('')));
     this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => void this.transform('format').catch(report));

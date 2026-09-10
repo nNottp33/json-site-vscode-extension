@@ -2,6 +2,9 @@
 
 ## 0.2.0
 
+- Base64 decode action, plus automatic decoding when base64-encoded JSON is pasted into an editor.
+- Fix editor copy/cut/paste (Ctrl+C/X/V) by bundling the Monaco clipboard contribution.
+- Alt+J keyboard shortcut to open JSON Workbench.
 - Optional history sync across devices through VS Code Settings Sync, off by default and enabled per device.
 - Shares up to 20 recent entries (1 MiB each, 64 KiB per snapshot) with content hashing, bounded decompression, and snapshot validation before any local change.
 - Deletions propagate with 90-day tombstones so removed items do not reappear, and a newer intentional re-add supersedes a deletion.

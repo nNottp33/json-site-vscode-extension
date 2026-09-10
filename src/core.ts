@@ -10,6 +10,13 @@ const nativeJSON = JSON as typeof JSON & {
 export const MAX_BYTES = 100 * 1024 * 1024;
 export type Indent = '1' | '2' | '3' | '4' | 'tab';
 export function indentation(indent: string): string { return indent === 'tab' ? '\t' : ' '.repeat(['1', '2', '3', '4'].includes(indent) ? Number(indent) : 2); }
+export function decodeBase64(text: string): string {
+  const normalized = text.trim().replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
+  if (!normalized || !/^[A-Za-z0-9+/]+={0,2}$/.test(padded)) throw new Error('Not valid base64 data.');
+  const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+  return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+}
 export function readJSON(text: string): unknown {
   if (new TextEncoder().encode(text).length > MAX_BYTES) throw new Error('JSON exceeds the 100 MiB input limit.');
   if (typeof nativeJSON.rawJSON !== 'function') throw new Error('Update VS Code to a version with native JSON.rawJSON support.');
@@ -74,6 +81,7 @@ function decoded(value: unknown, depth = 0): unknown {
 }
 export function transform(text: string, action: string, indent = '2'): string {
   if (action === 'repair') return writeJSON(readJSON(jsonrepair(text)), indentation(indent));
+  if (action === 'base64') { const decoded = decodeBase64(text); try { return writeJSON(readJSON(decoded), indentation(indent)); } catch { return decoded; } }
   const value = readJSON(text);
   switch (action) {
     case 'format': return writeJSON(value, indentation(indent));

@@ -70,6 +70,9 @@ const { encodeShare, decodeShare } = require('../src/host.ts');
   const tab = (side, name) => page.locator(`#${side}-tabs`).getByRole('tab', { name, exact: true }).click();
   const checks = [];
   try {
+    const appBundle = await fs.readFile(path.join(root, 'dist', 'app.js'), 'utf8');
+    assert.ok(appBundle.includes('clipboardPasteAction'), 'Monaco clipboard contrib (Ctrl+C/X/V copy/cut/paste) must be bundled');
+    checks.push('clipboard copy/cut/paste actions bundled');
     await page.goto(`http://127.0.0.1:${server.address().port}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => document.querySelectorAll('.monaco-editor').length === 2);
     const sample = '{"title":"ทดสอบ 🌏","id":9007199254740993,"users":[{"name":"Ada","role":"Engineer"},{"name":"Lin","role":"Designer"}],"active":true,"nested":"{\\"x\\":1}"}';
