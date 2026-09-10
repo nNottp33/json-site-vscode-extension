@@ -1,0 +1,42 @@
+name: Publish VS Code Marketplace
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marketplace-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check publisher configuration
+        run: node -e "if (require('./package.json').publisher === 'local-tools') { console.error('Set your actual Marketplace publisher ID before publishing.'); process.exit(1); }"
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui
+      - run: npm run package
+      - name: Publish the validated VSIX
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo 'Configure VSCE_PAT in the marketplace environment before publishing.'
+            exit 1
+          fi
+          npx vsce publish --packagePath json-workbench-local-0.1.0.vsix

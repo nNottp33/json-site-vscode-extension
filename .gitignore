@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.vsix
+test-results/
+reference.png
+.vsce
+.env
+.env.*
+*.pem
+*.key
+.vscode-test/
+.release-private/

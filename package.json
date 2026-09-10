@@ -1,0 +1,52 @@
+{
+  "name": "json-workbench-local",
+  "displayName": "JSON Workbench",
+  "description": "A private JSON workspace with split editors, tree, table, type generation, repair and local history.",
+  "version": "0.1.0",
+  "publisher": "local-tools",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/nNottp33/json-site-vscode-extension.git" },
+  "homepage": "https://github.com/nNottp33/json-site-vscode-extension#readme",
+  "bugs": { "url": "https://github.com/nNottp33/json-site-vscode-extension/issues" },
+  "author": "nNottp33",
+  "galleryBanner": { "color": "#181b22", "theme": "dark" },
+  "engines": { "vscode": "^1.96.0" },
+  "categories": ["Formatters", "Other"],
+  "keywords": ["json", "formatter", "tree", "table", "types"],
+  "main": "./dist/extension.cjs",
+  "activationEvents": ["onWebviewPanel:jsonWorkbench", "onUri"],
+  "capabilities": { "untrustedWorkspaces": { "supported": true }, "virtualWorkspaces": true },
+  "contributes": {
+    "commands": [
+      { "command": "jsonWorkbench.open", "title": "JSON Workbench: Open" },
+      { "command": "jsonWorkbench.openSelection", "title": "JSON Workbench: Open Selection or Document" }
+    ],
+    "menus": {
+      "editor/context": [{ "command": "jsonWorkbench.openSelection", "group": "navigation@90" }],
+      "explorer/context": [{ "command": "jsonWorkbench.openSelection", "when": "resourceExtname == .json", "group": "navigation@90" }]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "vscode:prepublish": "npm run build",
+    "check": "tsc --noEmit",
+    "test": "tsx --test test/core.test.ts test/host.test.ts",
+    "test:ui": "node test/ui.cjs",
+    "test:vscode": "node test/vscode/run.cjs",
+    "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-local-0.1.0.vsix"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.55.1",
+    "jsonrepair": "^3.13.1",
+    "quicktype-core": "^23.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.25.0",
+    "playwright": "^1.58.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
