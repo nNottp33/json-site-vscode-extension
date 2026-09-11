@@ -1,9 +1,9 @@
 {
-  "name": "json-workbench-local",
-  "displayName": "JSON Workbench",
+  "name": "json-workbench",
+  "displayName": "JSON Workbench Studio",
   "description": "A private JSON workspace with split editors, tree, table, type generation, repair and local history.",
   "version": "0.2.0",
-  "publisher": "local-tools",
+  "publisher": "nnottp33",
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/nNottp33/json-site-vscode-extension.git" },
   "homepage": "https://github.com/nNottp33/json-site-vscode-extension#readme",
@@ -37,7 +37,7 @@
     "test:ui": "node test/ui.cjs",
     "test:vscode": "node test/vscode/run.cjs",
     "test:clipboard": "node test/vscode/clipboard.cjs",
-    "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-local-0.2.0.vsix"
+    "package": "vsce package --no-dependencies --githubBranch master --out json-workbench-0.2.0.vsix"
   },
   "dependencies": {
     "monaco-editor": "^0.55.1",

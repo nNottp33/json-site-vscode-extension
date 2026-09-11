@@ -5,13 +5,13 @@
 ## ติดตั้งและเปิดใช้งาน
 
 1. ใน VS Code กด `Ctrl+Shift+P` แล้วเลือก **Extensions: Install from VSIX...**
-2. เลือกไฟล์ `json-workbench-local-0.2.0.vsix` ในโฟลเดอร์นี้
+2. เลือกไฟล์ `json-workbench-0.2.0.vsix` ในโฟลเดอร์นี้
 3. กด `Ctrl+Shift+P` แล้วเลือก **JSON Workbench: Open** หรือกด **Alt+J** เพื่อเปิดหน้าต่าง
 
 หรือใช้ Terminal:
 
 ```powershell
-code --install-extension .\json-workbench-local-0.2.0.vsix
+code --install-extension .\json-workbench-0.2.0.vsix
 ```
 
 คลิกขวาใน editor แล้วเลือก **JSON Workbench: Open Selection or Document** เพื่อเปิดข้อความที่เลือก หรือทั้งไฟล์ หากไม่ได้เลือกข้อความไว้ รองรับคลิกขวาไฟล์ `.json` ใน Explorer ด้วย ต้องใช้ VS Code 1.96 ขึ้นไป
@@ -39,7 +39,7 @@ code --install-extension .\json-workbench-local-0.2.0.vsix
 | History sync | เลือกเปิด "Sync history across devices" เพื่อแชร์ประวัติผ่าน VS Code Settings Sync (ปิดโดยปริยาย ต้องเปิดในแต่ละเครื่อง) |
 | Draft | คืนข้อความทั้งสองฝั่งและการตั้งค่าเมื่อเปิดกลับมา |
 | เปิด/บันทึกไฟล์ | ใช้ Open/Save หรือวางไฟล์ลงใน pane |
-| Share link | คัดลอกลิงก์ `vscode://<publisher>.json-workbench-local/open?...` ให้คนที่ติดตั้ง extension เดียวกัน |
+| Share link | คัดลอกลิงก์ `vscode://<publisher>.json-workbench/open?...` ให้คนที่ติดตั้ง extension เดียวกัน |
 | Appearance | Light/Dark/ตาม VS Code, ขนาดฟอนต์, Word wrap, ย่อเหลือ pane เดียว และลากปรับสัดส่วน |
 
 คีย์ลัดใน editor: `Ctrl/Cmd+Enter` จัดรูปแบบ, `Ctrl/Cmd+S` บันทึกไฟล์, `Ctrl/Cmd+F` ค้นหา, `Ctrl/Cmd+Z` ย้อนกลับ

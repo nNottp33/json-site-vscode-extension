@@ -18,7 +18,7 @@ const freePort = () => new Promise(resolve => { const s = net.createServer().lis
   const userData = path.join(root, 'test-results/vscode-profile-clipboard');
   await fs.mkdir(path.join(userData, 'User'), { recursive: true });
   await fs.writeFile(path.join(userData, 'User/settings.json'), JSON.stringify({ 'telemetry.telemetryLevel': 'off', 'update.mode': 'none', 'extensions.autoUpdate': false, 'workbench.startupEditor': 'none', 'window.restoreWindows': 'none', 'security.workspace.trust.enabled': false }));
-  await fs.rm(path.join(userData, 'User/globalStorage/local-tools.json-workbench-local'), { recursive: true, force: true }); // no draft from a previous run
+  await fs.rm(path.join(userData, 'User/globalStorage/nnottp33.json-workbench'), { recursive: true, force: true }); // no draft from a previous run
   const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
   const executable = process.env.JSON_WORKBENCH_VSCODE || path.join(process.env.LOCALAPPDATA, 'Programs/Microsoft VS Code/Code.exe');
   const port = await freePort();
